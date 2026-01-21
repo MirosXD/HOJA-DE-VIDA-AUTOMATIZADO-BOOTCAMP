@@ -6,10 +6,12 @@ django.setup()
 
 from django.contrib.auth.models import User
 
-# Crea el usuario mirosxd si no existe
-username = 'mirosxd'
+username = 'admin' # Puedes cambiarlo
+email = 'miroslavxde@gmail.com'
+password = 'Miroslav03' # Pon una clave real aquí
+
 if not User.objects.filter(username=username).exists():
-    User.objects.create_superuser(username, 'admin@test.com', '123456789')
-    print("✅ USUARIO CREADO: Ahora puedes entrar con mirosxd y 123456789")
+    User.objects.create_superuser(username, email, password)
+    print(f"Superusuario '{username}' creado exitosamente.")
 else:
-    print("⚠️ EL USUARIO YA EXISTE")
+    print(f"El usuario '{username}' ya existe.")
