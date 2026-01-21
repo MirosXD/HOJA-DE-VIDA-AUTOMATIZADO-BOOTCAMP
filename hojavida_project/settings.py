@@ -15,12 +15,13 @@ load_dotenv(BASE_DIR / ".env")
 # ---------------------------------------------------------------------
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev-only-change-me")
 
+# En Render, DJANGO_DEBUG debe ser False (0)
 DEBUG = os.getenv("DJANGO_DEBUG", "1") == "1"
 
 ALLOWED_HOSTS = [
     h.strip()
     for h in os.getenv(
-        "DJANGO_ALLOWED_HOSTS", "127.0.0.1,localhost"
+        "DJANGO_ALLOWED_HOSTS", "127.0.0.1,localhost,.onrender.com"
     ).split(",")
     if h.strip()
 ]
@@ -34,6 +35,7 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
+    "whitenoise.runserver_nostatic",  # Manejo de estáticos optimizado
     "django.contrib.staticfiles",
 
     # terceros
@@ -48,6 +50,7 @@ INSTALLED_APPS = [
 # ---------------------------------------------------------------------
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",  # NECESARIO PARA EL DISEÑO DEL ADMIN
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -71,7 +74,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                "django.template.context_processors.media", # Manejo de archivos media
+                "django.template.context_processors.media", 
             ],
         },
     },
@@ -122,10 +125,13 @@ USE_I18N = True
 USE_TZ = True
 
 # ---------------------------------------------------------------------
-# Archivos estáticos (Locales)
+# Archivos estáticos (Configuración WhiteNoise para Render)
 # ---------------------------------------------------------------------
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+
+# Almacenamiento optimizado para estáticos en Render
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # ---------------------------------------------------------------------
 # Azure Storage Configuration
@@ -149,13 +155,12 @@ if AZURE_ACCOUNT_NAME and AZURE_ACCOUNT_KEY:
             },
         },
         "staticfiles": {
-            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
         },
     }
     MEDIA_URL = f'https://{AZURE_ACCOUNT_NAME}.blob.core.windows.net/{AZURE_CONTAINER}/'
-    MEDIA_ROOT = None # En Azure no se usa ruta local para media
+    MEDIA_ROOT = None 
 else:
-    # CONFIGURACIÓN LOCAL (Obligatoria para que las fotos se vean en tu PC)
     MEDIA_URL = "/media/"
     MEDIA_ROOT = BASE_DIR / "media"
 
